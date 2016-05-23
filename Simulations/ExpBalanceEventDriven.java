@@ -5,6 +5,8 @@ public class ExpBalanceEventDriven {
 
    private static Random r;
 
+   private int mu;
+
    private int hotBalance;
    private int coldBalance;
 
@@ -21,14 +23,14 @@ public class ExpBalanceEventDriven {
 
    /* Given expected number of events in a given unit of time,
    returns time interval to next event (exponential distribution). */
-   private static double timeToEvent(double mean) {
+   public static double timeToEvent(double mean) {
 
       return (-1.0 * Math.log(r.nextDouble()) / mean);
    }
 
    /* Given times to next deposit, withdrawal, and hot wallet theft,
    returns most imminent Event. */
-   private static Event nextEvent(double nextD, double nextW, double nextT) {
+   public static Event nextEvent(double nextD, double nextW, double nextT) {
 
       if (nextD <= nextW && nextD <= nextT) {
          return Event.DEPOSIT;
@@ -40,30 +42,68 @@ public class ExpBalanceEventDriven {
          return Event.THEFT;
       }
    }
+
+   public ExpBalanceEventDriven(int threshold) {
+
+      this.mu = threshold;
+
+      this.coldHotTransfers = 0;
+      this.hotColdTransfers = 0;
+
+      this.hotThefts = 0;
+      this.coldThefts = 0;
+
+      this.hotBalance = mu;
+      this.coldBalance = 0;
+   }
    
+   /* Makes deposit to hot wallet if available capacity,
+   else deposits in cold wallet. */
+   public void deposit() {
+
+      if (hotBalance < mu) {
+         hotBalance++;
+      }
+      else {
+         coldBalance++;
+         hotColdTransfers++;
+      }
+   }
+
+   /* Makes withdrawal from hot wallet */
+   public void withdraw() {
+
+      hotBalance--;
+   }
+
+   /* Empties hot wallet */
+   public void theftHot() {
+
+      hotThefts++;
+      hotBalance = 0;
+   }
+
    /* Refills hot wallet if empty. Cold wallet is robbed with
-   probability pTheft after transaction.
-   Returns true if cold wallet theft occurred, false if not. */
-   private boolean refillHot(int mu, double pTheft) {
+   probability pTheft after transaction. */
+   public void refillHot(double pTheft) {
 
       /* Refill hot wallet */
       if (this.coldBalance < mu) {
          this.coldBalance = 0;
-      } else {
+      }
+      else {
          this.coldBalance -= mu;
       }
-      this.hotBalance = mu;
-      this.coldHotTransfers++;
+      hotBalance = mu;
+      coldHotTransfers++;
 
       /* Robbery with probability pTheft */
       double p = r.nextDouble();
-      if (p <= pTheft) {
-         this.coldBalance = 0;
-         this.coldThefts++;
-         return true;
-      }
 
-      return false;
+      if (p <= pTheft) {
+         coldBalance = 0;
+         coldThefts++;
+      }
    }
 
    public static void main(String[] args) {
@@ -115,24 +155,11 @@ public class ExpBalanceEventDriven {
          int totHotBal = 0;
          int totBalance = 0;
 
-         /* Other parameters ************/
-         int startingHot = mu;
-         int startingCold = 0;
-
          long t1 = System.currentTimeMillis();
 
          for (int j = 0; j < iterations; j++) {
 
-            ExpBalanceEventDriven sim = new ExpBalanceEventDriven();
-
-            sim.coldHotTransfers = 0;
-            sim.hotColdTransfers = 0;
-
-            sim.hotThefts = 0;
-            sim.coldThefts = 0;
-
-            sim.hotBalance = startingHot;
-            sim.coldBalance = startingCold;
+            ExpBalanceEventDriven sim = new ExpBalanceEventDriven(mu);
 
             double time = 0.0;      /* in seconds */
 
@@ -146,27 +173,21 @@ public class ExpBalanceEventDriven {
 
                if (nextEvent == Event.DEPOSIT) {
 
-                  if (sim.hotBalance < mu) {
-                     sim.hotBalance++;
-                  } else {
-                     sim.coldBalance++;
-                     sim.hotColdTransfers++;
-                  }
-                  
+                  sim.deposit();
+
                   time = timeToD;
                   timeToD += timeToEvent(mD/3600.0);
 
                } else if (nextEvent == Event.WITHDRAWAL) {
 
-                  sim.hotBalance--;
+                  sim.withdraw();
 
                   time = timeToW;
                   timeToW += timeToEvent(mW/3600.0);
 
                } else {
 
-                  sim.hotThefts++;
-                  sim.hotBalance = 0;
+                  sim.theftHot();
 
                   time = timeToT;
                   timeToT += timeToEvent(mTh/3600.0);
@@ -175,7 +196,7 @@ public class ExpBalanceEventDriven {
                /* Hot wallet refill */
                if (sim.hotBalance <= 0) {
 
-                  sim.refillHot(mu, pTc);
+                  sim.refillHot(pTc);
                }
             }
 
