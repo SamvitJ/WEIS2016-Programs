@@ -14,6 +14,11 @@ public class ExpBalanceEventDriven
    private int hotColdTransfers;
    private int coldHotTransfers;
 
+   private enum Event
+   {
+      DEPOSIT, WITHDRAWAL, THEFT
+   }
+
    /* Given expected number of events in a given unit of time,
    returns time interval to next event (exponential distribution). */
    private static double timeToEvent(double mean)
@@ -22,23 +27,21 @@ public class ExpBalanceEventDriven
       return (-1.0 * Math.log(p) / mean);
    }
 
-   /* three-way time comparison */
-   /* returns index of minimum time */
-   private static int minTime(double nextD, double nextW, double nextT)
+   /* Given times to next deposit, withdrawal, and hot wallet theft,
+   returns most imminent Event. */
+   private static Event nextEvent(double nextD, double nextW, double nextT)
    {
-      if (nextD < nextW)
+      if (nextD <= nextW && nextD <= nextT)
       {
-         if (nextD < nextT)
-            return 0;
-
-         else return 2;
+         return Event.DEPOSIT;
+      }
+      else if (nextW <= nextD && nextW <= nextT)
+      {
+         return Event.WITHDRAWAL;
       }
       else
       {
-         if (nextW < nextT)
-            return 1;
-
-         else return 2;
+         return Event.THEFT;
       }
    }
    
@@ -138,10 +141,9 @@ public class ExpBalanceEventDriven
 
             while (time < timeSpan)
             {
-               int nextEvent = minTime(nextD, nextW, nextT);
+               Event nextEvent = nextEvent(nextD, nextW, nextT);
 
-               /* deposits */
-               if (nextEvent == 0)
+               if (nextEvent == Event.DEPOSIT)
                {
                   //System.out.printf("%.2f Deposit\n", time);
 
@@ -160,8 +162,7 @@ public class ExpBalanceEventDriven
                   nextD += timeToEvent(mD/3600.0);
                }
 
-               /* withdrawals */
-               else if (nextEvent == 1)
+               else if (nextEvent == Event.WITHDRAWAL)
                {
                   //System.out.printf("%.2f Withdrawal\n", time);
 
@@ -171,8 +172,7 @@ public class ExpBalanceEventDriven
                   nextW += timeToEvent(mW/3600.0);
                }
 
-               /* hot wallet theft */
-               else if (nextEvent == 2)
+               else
                {
                   //System.out.printf("%.2f Hot Theft!\n", time);
 

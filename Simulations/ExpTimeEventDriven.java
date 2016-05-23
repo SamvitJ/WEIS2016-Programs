@@ -7,6 +7,11 @@ public class ExpTimeEventDriven
 {
    private static Random r;
 
+   private enum Event
+   {
+      DEPOSIT, WITHDRAWAL, THEFT
+   }
+
    /* Given expected number of events in a given unit of time,
    returns time interval to next event (exponential distribution). */
    private static double timeToEvent(double mean)
@@ -15,29 +20,26 @@ public class ExpTimeEventDriven
       return (-1.0 * Math.log(p) / mean);
    }
 
-   /* three-way time comparison */
-   /* returns index of minimum time */
-   private static int minTime(double nextD, double nextW, double nextT)
+   /* Given times to next deposit, withdrawal, and hot wallet theft,
+   returns most imminent Event. */
+   private static Event nextEvent(double nextD, double nextW, double nextT)
    {
-      if (nextD < nextW)
+      if (nextD <= nextW && nextD <= nextT)
       {
-         if (nextD < nextT)
-            return 0;
-
-         else return 2;
+         return Event.DEPOSIT;
+      }
+      else if (nextW <= nextD && nextW <= nextT)
+      {
+         return Event.WITHDRAWAL;
       }
       else
       {
-         if (nextW < nextT)
-            return 1;
-
-         else return 2;
+         return Event.THEFT;
       }
    }
 
    public static void main(String[] args)
    {
-      /* initialize Random */
       r = new Random();
 
       final double[] mDTest = {79,  80,  85, 100,   78,   77,   76,   71,   70,   50};
@@ -95,10 +97,9 @@ public class ExpTimeEventDriven
                {
                   //System.out.println("time: " + time + " bal: " + balance);
 
-                  int nextEvent = minTime(nextD, nextW, nextT);
+                  Event nextEvent = nextEvent(nextD, nextW, nextT);
 
-                  /* deposit */
-                  if (nextEvent == 0)
+                  if (nextEvent == Event.DEPOSIT)
                   {
                      //System.out.println("Deposit"); 
                      deposits++;
@@ -110,8 +111,7 @@ public class ExpTimeEventDriven
                      nextD += timeToEvent(mD/3600.0);
                   }
 
-                  /* withdrawal */
-                  else if (nextEvent == 1) 
+                  else if (nextEvent == Event.WITHDRAWAL)
                   {
                      //System.out.println("Withdrawal"); 
                      withdrawals++;
@@ -122,8 +122,7 @@ public class ExpTimeEventDriven
                      nextW += timeToEvent(mW/3600.0);
                   }
 
-                  /* theft */
-                  else if (nextEvent == 2)
+                  else
                   {
                      //System.out.println("Theft!"); 
                      thefts++;
