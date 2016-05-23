@@ -68,9 +68,9 @@ public class ExpBalanceEventDriven {
 
    public static void main(String[] args) {
 
-      if (args.length < 4 && args.length > 7) {
-         System.out.printf("Usage: java ExpBalanceEventDriven mean_d mean_w mean_t_h p_t_c [iterations] [mu_low mu_high]\n" +
-            "  e.g. java ExpBalanceEventDriven 80.0 78.0 0.01 0.01 1000 100 130\n");
+      if (args.length != 4 && args.length != 8) {
+         System.out.printf("Usage: java ExpBalanceEventDriven mean_d mean_w mean_t_h p_t_c [timespan iterations mu_low mu_high]\n" +
+            "  e.g. java ExpBalanceEventDriven 80.0 78.0 0.01 0.01 20000 1000 100 130\n");
          return;
       }
 
@@ -81,33 +81,23 @@ public class ExpBalanceEventDriven {
       final double mTh = Double.parseDouble(args[2]);
       final double pTc = Double.parseDouble(args[3]);
 
+      final long timespan;
       final int iterations;
       final int muLow;
       final int muHigh;
 
       if (args.length == 4) {
+         timespan = 3600 * 20000;
          iterations = 1000;
          muLow = 100;
          muHigh = 130;
       }
-      else if (args.length == 5) {
-         iterations = Integer.parseInt(args[4]);
-         muLow = 100;
-         muHigh = 130;
+      else {
+         timespan = 3600 * Integer.parseInt(args[4]);
+         iterations = Integer.parseInt(args[5]);
+         muLow = Integer.parseInt(args[6]);
+         muHigh = Integer.parseInt(args[7]);
       }
-      else if (args.length == 6) {
-         iterations = 1000;
-         muLow = Integer.parseInt(args[4]);
-         muHigh = Integer.parseInt(args[5]);
-      }
-      else { // if (args.length == 7) {
-         iterations = Integer.parseInt(args[4]);
-         muLow = Integer.parseInt(args[5]);
-         muHigh = Integer.parseInt(args[6]);
-      }
-
-      /* in seconds */
-      long timeSpan = 3600 * 20000;
 
       System.out.println("\n mu  exp_bal");
       System.out.println("----------------");
@@ -150,7 +140,7 @@ public class ExpBalanceEventDriven {
             double timeToW = timeToEvent(mW/3600.0);    // next withdrawal
             double timeToT = timeToEvent(mTh/3600.0);   // next hot wallet theft
 
-            while (time < timeSpan) {
+            while (time < timespan) {
 
                Event nextEvent = nextEvent(timeToD, timeToW, timeToT);
 
