@@ -1,8 +1,8 @@
 import java.math.*;
 import java.util.*;
 
-public class ExpBalanceEventDriven
-{
+public class ExpBalanceEventDriven {
+
    private static Random r;
 
    private int hotBalance;
@@ -14,72 +14,60 @@ public class ExpBalanceEventDriven
    private int hotColdTransfers;
    private int coldHotTransfers;
 
-   private enum Event
-   {
+   private enum Event {
+
       DEPOSIT, WITHDRAWAL, THEFT
    }
 
    /* Given expected number of events in a given unit of time,
    returns time interval to next event (exponential distribution). */
-   private static double timeToEvent(double mean)
-   {
-      double p = r.nextDouble();
-      return (-1.0 * Math.log(p) / mean);
+   private static double timeToEvent(double mean) {
+
+      return (-1.0 * Math.log(r.nextDouble()) / mean);
    }
 
    /* Given times to next deposit, withdrawal, and hot wallet theft,
    returns most imminent Event. */
-   private static Event nextEvent(double nextD, double nextW, double nextT)
-   {
-      if (nextD <= nextW && nextD <= nextT)
-      {
+   private static Event nextEvent(double nextD, double nextW, double nextT) {
+
+      if (nextD <= nextW && nextD <= nextT) {
          return Event.DEPOSIT;
       }
-      else if (nextW <= nextD && nextW <= nextT)
-      {
+      else if (nextW <= nextD && nextW <= nextT) {
          return Event.WITHDRAWAL;
       }
-      else
-      {
+      else {
          return Event.THEFT;
       }
    }
    
-   /* Refill hot wallet if empty.
-   Cold wallet is robbed with probability pTheft after transaction. 
-   Return 1 if theft, 0 if not. */
-   private boolean refillHot(int mu, double pTheft)
-   {
+   /* Refills hot wallet if empty. Cold wallet is robbed with
+   probability pTheft after transaction. Return 1 if cold wallet
+   theft occurred, 0 if not. */
+   private boolean refillHot(int mu, double pTheft) {
+
       /* if cold wallet does not have enough funds to refill hot, alert */
       /*if (this.coldBalance < mu)
          System.out.println("************ BANKRUPTCY!!! ************ ");*/
 
-      /* refill hot */
+      /* Refill hot */
       this.coldBalance -= mu;
       this.hotBalance = mu;
-
       this.coldHotTransfers++;
 
-
-      /* robbery with probability pTheft */
+      /* Robbery with probability pTheft */
       double p = r.nextDouble();
-      
-      if (p <= pTheft)
-      {
-         /* system resets */
+      if (p <= pTheft) {
          this.coldBalance = 0;
-
          this.coldThefts++;
-
          return true;
       }
 
       return false;
    }
 
-   public static void main(String[] args)
-   {
-      /* initialize Random */
+   public static void main(String[] args) {
+
       r = new Random();
 
       /* simulation parameters ************/
@@ -89,14 +77,14 @@ public class ExpBalanceEventDriven
       final double pTc = 0.01;       /* expected: 1 theft every 100 accesses  */
 
       /* in seconds */
-      long timeSpan = 3600*20000;        
+      long timeSpan = 3600 * 20000;
       /************************************/
 
       System.out.println("\nmD: " + mD);
       System.out.println("mu  exp_bal run_time");
 
-      for (int mu = 65; mu <= 85; mu++)
-      {
+      for (int mu = 65; mu <= 85; mu++) {
+
          /* testing parameters/stats *********/
          int iterations = 1000;
 
@@ -119,8 +107,8 @@ public class ExpBalanceEventDriven
          long t1 = System.currentTimeMillis();
 
          /* tests */
-         for (int j = 0; j < iterations; j++)
-         {
+         for (int j = 0; j < iterations; j++) {
+
             ExpBalanceEventDriven sim = new ExpBalanceEventDriven();
 
             sim.coldHotTransfers = 0;
@@ -139,21 +127,18 @@ public class ExpBalanceEventDriven
             double nextW = timeToEvent(mW/3600.0);    // next withdrawal
             double nextT = timeToEvent(mTh/3600.0);   // next hot wallet theft
 
-            while (time < timeSpan)
-            {
+            while (time < timeSpan) {
+
                Event nextEvent = nextEvent(nextD, nextW, nextT);
 
-               if (nextEvent == Event.DEPOSIT)
-               {
+               if (nextEvent == Event.DEPOSIT) {
+
                   //System.out.printf("%.2f Deposit\n", time);
 
-                  if (sim.hotBalance < mu)
-                  {
+                  if (sim.hotBalance < mu) {
                      sim.hotBalance++;
                   }
-
-                  else 
-                  {
+                  else {
                      sim.coldBalance++;
                      sim.hotColdTransfers++;
                   }
@@ -162,8 +147,8 @@ public class ExpBalanceEventDriven
                   nextD += timeToEvent(mD/3600.0);
                }
 
-               else if (nextEvent == Event.WITHDRAWAL)
-               {
+               else if (nextEvent == Event.WITHDRAWAL) {
+
                   //System.out.printf("%.2f Withdrawal\n", time);
 
                   sim.hotBalance--;
@@ -172,8 +157,8 @@ public class ExpBalanceEventDriven
                   nextW += timeToEvent(mW/3600.0);
                }
 
-               else
-               {
+               else {
+
                   //System.out.printf("%.2f Hot Theft!\n", time);
 
                   sim.hotThefts++;
@@ -184,12 +169,10 @@ public class ExpBalanceEventDriven
                }
 
                /* hot wallet refill */
-               if (sim.hotBalance <= 0)
-               {
+               if (sim.hotBalance <= 0) {
                   //System.out.printf("%.2f Hot Refill\n", time);
 
-                  if (sim.refillHot(mu, pTc))
-                  {
+                  if (sim.refillHot(mu, pTc)) {
                      //System.out.printf("%.2f Cold Theft!\n", time);
                   }
                }
@@ -198,7 +181,7 @@ public class ExpBalanceEventDriven
                //System.out.println("Cold wallet balance: " + sim.coldBalance);
             }
 
-            /*System.out.println("\nStats for Trial " + j + ":");
+            /* System.out.println("\nStats for Trial " + j + ":");
             System.out.println("Hot -> cold transfers: " + sim.hotColdTransfers);
             System.out.println("Cold -> hot transfers: " + sim.coldHotTransfers);
 
@@ -206,9 +189,9 @@ public class ExpBalanceEventDriven
             System.out.println("Cold w. thefts: " + sim.coldThefts);
 
             System.out.println("Balance: " + (sim.hotBalance - startingHot + sim.coldBalance - startingCold));
-            System.out.println();*/
+            System.out.println(); */
 
-            /* record cumulative statistics */
+            /* Record cumulative statistics */
             totHotCold += sim.hotColdTransfers;
             totColdHot += sim.coldHotTransfers;
 
