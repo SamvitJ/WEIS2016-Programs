@@ -36,7 +36,7 @@ public class ExpBalanceTheoretical {
 
       for (double mu = muLow; mu < muHigh; mu++) {
 
-         double expTime = timeObj.expVal(mu);
+         double expTime = timeObj.expectedTime(mu);
 
          double income = ((mD - mW) * expTime) / pTc;
          double losses = gamma * (mTh * expTime * mu) / pTc;

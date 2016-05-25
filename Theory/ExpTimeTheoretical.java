@@ -7,7 +7,7 @@ public class ExpTimeTheoretical {
    private double mW;
    private double mTh;
    
-   /* intermediate values */
+   /* Intermediate values */
    private double disc;
    private double x1;
    private double x2;
@@ -16,7 +16,6 @@ public class ExpTimeTheoretical {
    private double prod;
 
    private double mThInv;
-   /* ************** */
 
    public ExpTimeTheoretical(double mD, double mW, double mTh) {
 
@@ -24,7 +23,7 @@ public class ExpTimeTheoretical {
       this.mW = mW;
       this.mTh = mTh;
 
-      /* precomputations */
+      /* Precomputations */
       disc = Math.sqrt(Math.pow((mD + mW + mTh), 2) - 4*mD*mW);
       x1 = ((mD + mW + mTh) - disc)/(2*mD);
       x2 = ((mD + mW + mTh) + disc)/(2*mD);
@@ -34,10 +33,11 @@ public class ExpTimeTheoretical {
 
       mThInv = 1.0 / mTh;
 
+      /* Property: product of roots equals c/a */
       assert (Math.abs(prod - mW/mD) < 1E-5);
    }
 
-   public double expVal(double mu) {
+   public double expectedTime(double mu) {
 
       double denom = ((mW*(x1-1) + mTh*x1) * Math.pow(x1, mu-1)) - ((mW*(x2-1) + mTh*x2) * Math.pow(x2, mu-1));
       return mThInv + (mThInv * mW * diff * Math.pow(prod, mu-1)) / denom;
@@ -75,8 +75,8 @@ public class ExpTimeTheoretical {
       System.out.println("-----------------");
 
       for (int mu = muLow; mu < muHigh; mu += muInc) {
-         double expVal = timeObj.expVal(mu);
-         System.out.printf("%3d   %4.2f\n", mu, expVal);
+         double expTime = timeObj.expectedTime(mu);
+         System.out.printf("%3d   %4.2f\n", mu, expTime);
       }
    }
 }
