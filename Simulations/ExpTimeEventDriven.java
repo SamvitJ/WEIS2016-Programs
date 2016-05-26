@@ -1,171 +1,109 @@
 import java.math.*;
 import java.util.*;
-import java.lang.*;
-import java.security.SecureRandom;
 
-public class ExpTimeEventDriven
-{
+public class ExpTimeEventDriven {
+
    private static Random r;
 
-   private enum Event
-   {
+   private enum Event {
+
       DEPOSIT, WITHDRAWAL, THEFT
    }
 
    /* Given expected number of events in a given unit of time,
    returns time interval to next event (exponential distribution). */
-   private static double timeToEvent(double mean)
-   {
-      double p = r.nextDouble();
-      return (-1.0 * Math.log(p) / mean);
+   private static double timeToEvent(double mean) {
+
+      return (-1.0 * Math.log(r.nextDouble()) / mean);
    }
 
    /* Given times to next deposit, withdrawal, and hot wallet theft,
    returns most imminent Event. */
-   private static Event nextEvent(double nextD, double nextW, double nextT)
-   {
-      if (nextD <= nextW && nextD <= nextT)
-      {
+   private static Event nextEvent(double nextD, double nextW, double nextT) {
+
+      if (nextD <= nextW && nextD <= nextT) {
          return Event.DEPOSIT;
       }
-      else if (nextW <= nextD && nextW <= nextT)
-      {
+      else if (nextW <= nextD && nextW <= nextT) {
          return Event.WITHDRAWAL;
       }
-      else
-      {
+      else {
          return Event.THEFT;
       }
    }
 
-   public static void main(String[] args)
-   {
+   public static void main(String[] args) {
+
+      if (args.length != 3 && args.length != 6) {
+         System.out.printf("Usage: java ExpTimeEventDriven mean_d mean_w mean_t_h [iterations mu_low mu_high]\n" +
+            "  e.g. java ExpBalanceEventDriven 80.0 78.0 0.001 1000 5 500\n");
+         return;
+      }
+
       r = new Random();
 
-      final double[] mDTest = {79,  80,  85, 100,   78,   77,   76,   71,   70,   50};
-      final double[] muLim = {800, 600, 500, 500, 2500, 3000, 3000, 3000, 3000, 3000};
+      final double mD = Double.parseDouble(args[0]);
+      final double mW = Double.parseDouble(args[1]);
+      final double mTh = Double.parseDouble(args[2]);
 
-      final double mW = 78.0;
-      final double mTh = 0.001;                 // expected: 1 theft every 1000 hours  
-      
-      double mD;  
-      int mu;                                   // hot wallet threshold
+      final int iterations;
+      final int muLow;
+      final int muHigh;
 
-      for (int k = 0; k < mDTest.length; k++) 
-      {
-         mD = mDTest[k];
-         System.out.println("\nmD: " + mD);
-         
-         for (mu = 5; mu < muLim[k]; mu++)
-         {
-            int iterations = 1000;
+      if (args.length == 3) {
+         iterations = 1000;
+         muLow = 5;
+         muHigh = 500;
+      }
+      else {
+         iterations = Integer.parseInt(args[3]);
+         muLow = Integer.parseInt(args[4]);
+         muHigh = Integer.parseInt(args[5]);
+      }
 
-            double cumulativeTime = 0.0;
+      System.out.println("\n mu  time");
+      System.out.println("----------------");
 
-            /* stats ****** */
-            /* hourly rates */
-            double cumDeposits = 0;
-            double cumWithdrawals = 0;
+      for (int mu = muLow; mu <= muHigh; mu++) {
 
-            double cumThefts = 0;
-            double cumTheftTime = 0;
-            /* ************ */
+         double cumulativeTime = 0.0;
 
-            long t1 = System.currentTimeMillis();
+         for (int i = 0; i < iterations; i++) {
 
-            for (int i = 0; i < iterations; i++)
-            {
-               /* time in seconds */
-               double nextD = timeToEvent(mD/3600.0);    // next deposit
-               double nextW = timeToEvent(mW/3600.0);    // next withdrawal
-               double nextT = timeToEvent(mTh/3600.0);   // next hot wallet theft
+            /* Times in seconds */
+            double time = 0;                            // simulation time
+            double timeToD = timeToEvent(mD/3600.0);    // time to next deposit
+            double timeToW = timeToEvent(mW/3600.0);    // time to next withdrawal
+            double timeToT = timeToEvent(mTh/3600.0);   // time to next hot wallet theft
 
-               /*System.out.println("firstD: " + nextD);
-               System.out.println("firstW: " + nextW);
-               System.out.println("firstT: " + nextT);*/
+            int balance = mu;
 
-               int reserves = 0;
-               int balance = mu;
-               double time = 0;
+            while (balance > 0) {
 
-               int deposits = 0;
-               int withdrawals = 0;
-               int thefts = 0;
-               double theftTime = 0;
+               Event nextEvent = nextEvent(timeToD, timeToW, timeToT);
 
-               while (balance > 0)
-               {
-                  //System.out.println("time: " + time + " bal: " + balance);
-
-                  Event nextEvent = nextEvent(nextD, nextW, nextT);
-
-                  if (nextEvent == Event.DEPOSIT)
-                  {
-                     //System.out.println("Deposit"); 
-                     deposits++;
-
-                     if (balance < mu) balance++;
-                     else reserves++;
-
-                     time = nextD;
-                     nextD += timeToEvent(mD/3600.0);
-                  }
-
-                  else if (nextEvent == Event.WITHDRAWAL)
-                  {
-                     //System.out.println("Withdrawal"); 
-                     withdrawals++;
-
-                     balance--;
-
-                     time = nextW;
-                     nextW += timeToEvent(mW/3600.0);
-                  }
-
-                  else
-                  {
-                     //System.out.println("Theft!"); 
-                     thefts++;
-                     theftTime = time;
-
-                     balance = 0;
-
-                     time = nextT;
-                     nextT += timeToEvent(mTh/3600.0);
-
-                     break;
-                  }
+               if (nextEvent == Event.DEPOSIT) {
+                  if (balance < mu) balance++;
+                  time = timeToD;
+                  timeToD += timeToEvent(mD/3600.0);
                }
-
-               double hoursToEmpty = (double)time/3600.0;
-               //System.out.println("Iteration: " + i + " Time: " + hoursToEmpty + " Reserves: " + reserves);
-               //System.out.println("Thefts: " + thefts + " Deposits: " + deposits + " Withdrawals: " + withdrawals);
-
-               cumulativeTime += hoursToEmpty;
-
-               /* stats ****** */
-               /* hourly rates */
-               cumDeposits += (double)deposits/hoursToEmpty;
-               cumWithdrawals += (double)withdrawals/hoursToEmpty;
-
-               cumThefts += (double)thefts;
-               cumTheftTime += (double)theftTime/3600.0;
-               /* ************ */
+               else if (nextEvent == Event.WITHDRAWAL) {
+                  balance--;
+                  time = timeToW;
+                  timeToW += timeToEvent(mW/3600.0);
+               }
+               else {
+                  balance = 0;
+                  time = timeToT;
+                  timeToT += timeToEvent(mTh/3600.0);
+               }
             }
 
-            long t2 = System.currentTimeMillis();
-            double timeElapsed = (t2 - t1)/1000.0; 
-
-            //System.out.println("mu: " + mu + " Average: " + cumulativeTime/(double)iterations);
-            System.out.println(mu + " " + cumulativeTime/(double)iterations + " " + timeElapsed);
-
-            /* stats ****** */
-            /*System.out.println("Thefts: " + cumThefts/(double)iterations + 
-               " Deposits: " + cumDeposits/(double)iterations + 
-               " Withdrawals: " + cumWithdrawals/(double)iterations + 
-               " Theft time: " + cumTheftTime/(double)iterations);
-            /* ************ */
+            cumulativeTime += (double)time/3600.0;
          }
+
+         /* Print stats for current value of mu */
+         System.out.printf("%d  %5.1f\n", mu, cumulativeTime/(double)iterations);
       }
    }
 }
