@@ -144,7 +144,7 @@ public class ExpBalanceEventDriven {
 
       for (int mu = muLow; mu <= muHigh; mu++) {
 
-         /* Statistics *********/
+         /* Statistics */
          int totColdHot = 0;
          int totHotCold = 0;
 
@@ -155,47 +155,38 @@ public class ExpBalanceEventDriven {
          int totHotBal = 0;
          int totBalance = 0;
 
-         long t1 = System.currentTimeMillis();
-
          for (int j = 0; j < iterations; j++) {
 
             ExpBalanceEventDriven sim = new ExpBalanceEventDriven(mu);
 
-            double time = 0.0;      /* in seconds */
-
-            double timeToD = timeToEvent(mD/3600.0);    // next deposit
-            double timeToW = timeToEvent(mW/3600.0);    // next withdrawal
-            double timeToT = timeToEvent(mTh/3600.0);   // next hot wallet theft
+            /* Times in seconds */
+            double time = 0.0;                          // simulation time
+            double timeToD = timeToEvent(mD/3600.0);    // time to next deposit
+            double timeToW = timeToEvent(mW/3600.0);    // time to next withdrawal
+            double timeToT = timeToEvent(mTh/3600.0);   // time to next hot wallet theft
 
             while (time < timespan) {
 
                Event nextEvent = nextEvent(timeToD, timeToW, timeToT);
 
                if (nextEvent == Event.DEPOSIT) {
-
                   sim.deposit();
-
                   time = timeToD;
                   timeToD += timeToEvent(mD/3600.0);
-
-               } else if (nextEvent == Event.WITHDRAWAL) {
-
+               }
+               else if (nextEvent == Event.WITHDRAWAL) {
                   sim.withdraw();
-
                   time = timeToW;
                   timeToW += timeToEvent(mW/3600.0);
-
-               } else {
-
+               }
+               else {
                   sim.theftHot();
-
                   time = timeToT;
                   timeToT += timeToEvent(mTh/3600.0);
                }
 
                /* Hot wallet refill */
                if (sim.hotBalance <= 0) {
-
                   sim.refillHot(pTc);
                }
             }
@@ -209,7 +200,6 @@ public class ExpBalanceEventDriven {
 
             totColdBal += sim.coldBalance;
             totHotBal += sim.hotBalance;
-
             totBalance += sim.hotBalance + sim.coldBalance;
          }
 
