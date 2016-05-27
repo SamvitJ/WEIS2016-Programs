@@ -168,21 +168,22 @@ public class ExpBalanceEventDriven {
             while (time < timespan) {
 
                Event nextEvent = nextEvent(timeToD, timeToW, timeToT);
-
-               if (nextEvent == Event.DEPOSIT) {
-                  sim.deposit();
-                  time = timeToD;
-                  timeToD += timeToEvent(mD/3600.0);
-               }
-               else if (nextEvent == Event.WITHDRAWAL) {
-                  sim.withdraw();
-                  time = timeToW;
-                  timeToW += timeToEvent(mW/3600.0);
-               }
-               else {
-                  sim.theftHot();
-                  time = timeToT;
-                  timeToT += timeToEvent(mTh/3600.0);
+               switch (nextEvent) {
+                  case DEPOSIT:
+                     sim.deposit();
+                     time = timeToD;
+                     timeToD += timeToEvent(mD/3600.0);
+                     break;
+                  case WITHDRAWAL:
+                     sim.withdraw();
+                     time = timeToW;
+                     timeToW += timeToEvent(mW/3600.0);
+                  case THEFT:
+                     sim.theftHot();
+                     time = timeToT;
+                     timeToT += timeToEvent(mTh/3600.0);
+                  default:
+                     break;
                }
 
                /* Hot wallet refill */

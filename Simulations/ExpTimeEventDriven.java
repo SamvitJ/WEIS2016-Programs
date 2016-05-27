@@ -81,21 +81,24 @@ public class ExpTimeEventDriven {
             while (balance > 0) {
 
                Event nextEvent = nextEvent(timeToD, timeToW, timeToT);
-
-               if (nextEvent == Event.DEPOSIT) {
-                  if (balance < mu) balance++;
-                  time = timeToD;
-                  timeToD += timeToEvent(mD/3600.0);
-               }
-               else if (nextEvent == Event.WITHDRAWAL) {
-                  balance--;
-                  time = timeToW;
-                  timeToW += timeToEvent(mW/3600.0);
-               }
-               else {
-                  balance = 0;
-                  time = timeToT;
-                  timeToT += timeToEvent(mTh/3600.0);
+               switch (nextEvent) {
+                  case DEPOSIT:
+                     if (balance < mu) balance++;
+                     time = timeToD;
+                     timeToD += timeToEvent(mD/3600.0);
+                     break;
+                  case WITHDRAWAL:
+                     balance--;
+                     time = timeToW;
+                     timeToW += timeToEvent(mW/3600.0);
+                     break;
+                  case THEFT:
+                     balance = 0;
+                     time = timeToT;
+                     timeToT += timeToEvent(mTh/3600.0);
+                     break;
+                  default:
+                     break;
                }
             }
 
