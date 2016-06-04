@@ -2,7 +2,7 @@
 
 This repository contains the source code for a [paper](http://weis2016.econinfosec.org/wp-content/uploads/sites/2/2016/05/WEIS_2016_paper_68-2.pdf) on Bitcoin storage presented at the 15th Annual Workshop on the Economics of Information Security ([WEIS 2016](http://weis2016.econinfosec.org/)), held at UC Berkeley.
 
-The key focus of the paper is to understand the behavior of a hot/cold wallet system which supports customer deposits and withdrawals, and suffers from periodic hot and cold wallet thefts, over a long time interval [0, T]. Specifically, we look at the net balance of the wallets at T as a function of the ceiling capacity of the hot wallet, with the goal of finding the optimal value for this threshold.
+The key focus of the paper is to understand the behavior of a hot/cold Bitcoin wallet system which supports customer deposits and withdrawals, and suffers from periodic hot and cold wallet thefts, over a long time interval [0, T]. Specifically, we look at the net balance of the wallets at T as a function of the ceiling capacity of the hot wallet, with the goal of finding the optimal value for this threshold.
 
 The code is divided into two directories - Theory and Simulations - each of which contains two fairly simple Java programs.
 
@@ -20,7 +20,8 @@ To run, provide the appropriate command line arguments specified in the usage me
 java ExpBalanceEventDriven 80.0 78.0 0.01 0.01
 ```
 
-For more information, please look at Sections 2 (Problem Formulation) and 5 (Approach) of our paper. Feel free to send me an email at samvitj AT princeton DOT edu with any questions.
+For more information, please look at Sections 2 (Problem Formulation) and 5 (Approach) of our paper.
 
-Authors: Samvit Jain, Edward Felten, Steven Goldfeder.  
-Institution: Department of Computer Science, Princeton University.
+Authors: Samvit Jain, Edward Felten, Steven Goldfeder  
+Institution: Department of Computer Science, Princeton University  
+Contact: samvitj AT princeton DOT edu 
