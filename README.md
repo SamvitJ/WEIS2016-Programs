@@ -8,20 +8,29 @@ The code is divided into two directories - Theory and Simulations - each of whic
 
 [ExpBalanceTheoretical.java](https://github.com/SamvitJ/WEIS2016-Programs/blob/master/Theory/ExpBalanceTheoretical.java) analytically computes the net balance as a function of various system parameters (e.g. deposit rate, hot wallet theft rate), provided as command line arguments. These results can be compared to those obtained via an event-driven simulation, [ExpBalanceEventDriven.java](https://github.com/SamvitJ/WEIS2016-Programs/blob/master/Simulations/ExpBalanceEventDriven.java), which computes the same value by repeatedly drawing the waiting times to and executing the next deposit, withdrawal, and hot wallet theft events in a loop, until a time counter reaches T.
 
-The other pair of programs, [ExpTimeTheoretical.java](https://github.com/SamvitJ/WEIS2016-Programs/blob/master/Theory/ExpTimeTheoretical.java) and [ExpTimeEventDriven.java](https://github.com/SamvitJ/WEIS2016-Programs/blob/master/Simulations/ExpTimeEventDriven.java), output an intermediate result - the expected time to an empty hot wallet. This value is used in our formula for the expected balance of the wallets, and is a key subcomponent of our theory.
+The other pair of programs, [ExpTimeTheoretical.java](https://github.com/SamvitJ/WEIS2016-Programs/blob/master/Theory/ExpTimeTheoretical.java) and [ExpTimeEventDriven.java](https://github.com/SamvitJ/WEIS2016-Programs/blob/master/Simulations/ExpTimeEventDriven.java), output the expected time to an empty hot wallet. This value is used to determine the expected balance of the wallets, and is thus an intermediate result in our theory.
 
-To compile any program (e.g. ExpBalanceEventDriven.java), run
+To compile and run any program, `cd` into the appropriate directory and run:
+```
+javac <filename>.java
+java <filename> [arg1] [arg2] ...
+```
+
+For example, to run ExpBalanceEventDriven.java, execute the following from [Simulations](https://github.com/SamvitJ/WEIS2016-Programs/tree/master/Simulations):
 ```
 javac ExpBalanceEventDriven.java
+java ExpBalanceEventDriven 80.0 78.0 0.01 0.01
 ```
 
-To run, provide the appropriate command line arguments specified in the usage message, e.g.
+To list the required and optional command line arguments that a program accepts, invoke the usage message, e.g.
 ```
-java ExpBalanceEventDriven 80.0 78.0 0.01 0.01
+java ExpBalanceEventDriven
+
+Usage: java ExpBalanceEventDriven mean_d mean_w mean_t_h p_t_c [timespan iterations mu_low mu_high]
+  e.g. java ExpBalanceEventDriven 80.0 78.0 0.01 0.01 20000 1000 100 130
 ```
 
 For more information, please look at Sections 2 (Problem Formulation) and 5 (Approach) of our paper.
 
 Authors: Samvit Jain, Edward Felten, Steven Goldfeder  
 Institution: Department of Computer Science, Princeton University  
-Contact: samvitj AT princeton DOT edu 
